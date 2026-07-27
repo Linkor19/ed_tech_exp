@@ -1,0 +1,160 @@
+-- DROP TABLE users;
+-- DROP TABLE subscriptions;
+-- DROP TABLE subscription_plans;
+-- DROP TABLE ab_test_segments;
+-- DROP TABLE subjects;
+-- DROP TABLE lessons;
+-- DROP TABLE tests;
+-- DROP TABLE marketing_costs;
+-- DROP TABLE user_lessons;
+-- DROP TABLE test_attempts;
+-- DROP TABLE clickstream_logs;
+--
+-- CREATE TABLE users (
+--     user_id INT NOT NULL ,
+--     registration_date DATE NULL,
+--     platform VARCHAR (50) NULL,
+--     marketing_chanel VARCHAR (50) NULL
+-- );
+--
+-- CREATE TABLE subscriptions (
+--     subscription_id INT NOT NULL,
+--     user_id INT NOT NULL ,
+--     plan_id INT NOT NULL,
+--     start_date TIMESTAMP ,
+--     end_date TIMESTAMP ,
+--     status VARCHAR(20),
+--     price_paid DECIMAL
+-- );
+--
+-- CREATE TABLE subscription_plans (
+--     plan_id INT NOT NULL ,
+--     plan_name VARCHAR(50),
+--     duration_days INT NOT NULL ,
+--     standart_price INT
+-- );
+--
+-- CREATE TABLE ab_test_segments (
+--     user_id INT NOT NULL,
+--     experiment_name VARCHAR(50),
+--     variant VARCHAR(50)
+-- );
+-- CREATE TABLE subjects (
+--     subject_id INT NOT NULL,
+--     subject_name VARCHAR(100)
+-- );
+--
+-- CREATE TABLE lessons (
+--     lesson_id INT NOT NULL,
+--     subject_id INT NOT NULL,
+--     lesson_title VARCHAR(100),
+--     difficulty VARCHAR(20)
+-- );
+--
+-- CREATE TABLE tests (
+--     test_id INT NOT NULL,
+--     subject_id INT NOT NULL,
+--     test_type VARCHAR(50)
+-- );
+--
+-- CREATE TABLE marketing_costs (
+--     date DATE NOT NULL,
+--     channel VARCHAR(50) NOT NULL,
+--     cost DECIMAL
+-- );
+--
+-- CREATE TABLE user_lessons (
+--     lesson_id INT NOT NULL,
+--     user_id INT NOT NULL,
+--     completed_at TIMESTAMP ,
+--     score INT
+-- );
+--
+-- CREATE TABLE test_attempts (
+--     attempt_id INT NOT NULL,
+--     user_id INT NOT NULL,
+--     test_id INT NOT NULL,
+--     started_at TIMESTAMP ,
+--     finished_at TIMESTAMP ,
+--     score INT,
+--     max_score INT
+-- );
+--
+-- CREATE TABLE clickstream_logs (
+--     event_id INT NOT NULL,
+--     user_id INT NOT NULL,
+--     event_timestamp TIMESTAMP ,
+--     event_type VARCHAR(50),
+--     screen_name VARCHAR(100),
+--     session_id VARCHAR(50)
+-- );
+--
+-- ALTER TABLE users ADD
+-- CONSTRAINT PK_user PRIMARY KEY (user_id);
+--
+-- ALTER TABLE subscriptions ADD
+-- CONSTRAINT PK_subscription PRIMARY KEY (subscription_id);
+--
+-- ALTER TABLE subscription_plans ADD
+-- CONSTRAINT PK_subscription_plans PRIMARY KEY (plan_id);
+--
+-- ALTER TABLE subjects ADD
+-- CONSTRAINT PK_subjects PRIMARY KEY (subject_id);
+--
+-- ALTER TABLE lessons ADD
+-- CONSTRAINT PK_lessons PRIMARY KEY (lesson_id);
+--
+-- ALTER TABLE tests ADD
+-- CONSTRAINT PK_tests PRIMARY KEY (test_id);
+--
+-- ALTER TABLE test_attempts ADD
+-- CONSTRAINT PK_test_attempts PRIMARY KEY (attempt_id);
+--
+-- ALTER TABLE clickstream_logs ADD
+-- CONSTRAINT PK_clickstream_logs PRIMARY KEY (event_id);
+--
+-- ALTER TABLE subscriptions ADD
+-- CONSTRAINT FK_subscriptions FOREIGN KEY (plan_id)
+-- REFERENCES subscription_plans(plan_id)
+-- ON DELETE CASCADE;
+--
+-- ALTER TABLE subscriptions ADD
+-- CONSTRAINT FK_subscriptions_user FOREIGN KEY (user_id)
+-- REFERENCES users(user_id)
+-- ON DELETE CASCADE;
+--
+-- ALTER TABLE ab_test_segments ADD
+-- CONSTRAINT FK_ab_test_segments FOREIGN KEY (user_id)
+-- REFERENCES users(user_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE user_lessons ADD
+-- CONSTRAINT FK_user_lessons FOREIGN KEY (user_id)
+-- REFERENCES users(user_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE user_lessons ADD
+-- CONSTRAINT FK_user_lessons_user FOREIGN KEY (lesson_id)
+-- REFERENCES lessons(lesson_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE lessons ADD
+-- CONSTRAINT FK_lessons FOREIGN KEY (subject_id)
+-- REFERENCES subjects(subject_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE test_attempts ADD
+-- CONSTRAINT FK_test_attempts FOREIGN KEY (user_id)
+-- REFERENCES users(user_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE test_attempts ADD
+-- CONSTRAINT FK_test_attempts_tests FOREIGN KEY (test_id)
+-- REFERENCES tests (test_id)
+-- ON DELETE CASCADE ;
+--
+-- ALTER TABLE clickstream_logs ADD
+-- CONSTRAINT FK_clickstream_logs FOREIGN KEY (user_id)
+-- REFERENCES users(user_id)
+-- ON DELETE CASCADE ;
+
