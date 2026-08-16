@@ -17,12 +17,12 @@
 -- FROM subscriptions
 -- WHERE end_date < '2026-03-31'::date AND status = 'Expired';
 
--- всі підписки активні після 03-31 - дійсні
--- всі підписки не активні після 03-28 - протерміновані
+-- all subscriptions active after 03-31 are valid
+-- all subscriptions not active after 03-28 are expired
 
 
 DROP VIEW user_sub;
-CREATE VIEW user_sub AS ( -- загальний вигляд, пов'язаний з підписками
+CREATE VIEW user_sub AS ( -- a general view built around the subscriptions
     SELECT a.user_id, registration_date, platform, marketing_chanel,
            subscription_id, b.plan_id, standart_price, start_date, end_date, price_paid,
            plan_name, duration_days as acquistion_cost
@@ -33,7 +33,7 @@ CREATE VIEW user_sub AS ( -- загальний вигляд, пов'язани�
     ON B.plan_id = C.plan_id
 --     LEFT JOIN marketing_costs D
 --     ON A.marketing_chanel = D.channel AND a.registration_date::date = d.date
-         -- AND d.date = (SELECT MIN(date) FROM marketing_costs WHERE a.registration_date::date <= date); -- якщо були б пропуски в розцінках між днями
+         -- AND d.date = (SELECT MIN(date) FROM marketing_costs WHERE a.registration_date::date <= date); -- in case there were gaps in the rates between the days
 --     WHERE price_paid < standart_price
     -- WHERE duration_days = EXTRACT(DAY FROM end_date - start_date)
 );
@@ -42,39 +42,39 @@ SELECT *
 FROM user_sub;
 
 
---ціна оплати може бути нижчою за стандартну, але ніколи не вищою за стандартну!
+--the paid price can be lower than the standard one, but never higher than the standard one!
 
--- --канали
+-- --channels
 -- SELECT DISTINCT (users.marketing_chanel)
 -- FROM users;
 --
--- --кількість користувачів
+-- --number of users
 -- SELECT marketing_chanel, COUNT(users.user_id)
 -- FROM users
 -- GROUP BY marketing_chanel;
 --
----- арпу і арппу
+---- arpu and arppu
 -- SELECT marketing_chanel, sum(price_paid) / COUNT (user_id), sum(price_paid) / COUNT(plan_id)
 -- FROM user_sub
 -- GROUP BY marketing_chanel;
 
--- -- -- загальний дохід по каналах
+-- -- -- total revenue by channel
 -- SELECT marketing_chanel,  SUM(price_paid)
 -- FROM user_sub
 -- GROUP BY marketing_chanel ;
 
--- -- розцінки без пропусків
+-- -- rates without gaps
 -- SELECT date, COUNT(date)
 -- FROM marketing_costs
 -- GROUP BY date
 -- HAVING COUNT(date) <> 3
 
----- витрачено всього на кампанію
+---- total spent on the campaign
 -- SELECT channel, SUM(cost)
 -- FROM marketing_costs
 -- GROUP BY channel
 --
--- -- -- вартість залучення користувача
+-- -- -- cost of acquiring a user
 -- SELECT marketing_chanel, spend/users_acquisition
 -- FROM(
 --     SELECT marketing_chanel, COUNT(user_id) as users_acquisition
@@ -86,7 +86,7 @@ FROM user_sub;
 -- ON Q.marketing_chanel = B.channel
 
 --
--- -- вартість залучення преміум користувача
+-- -- cost of acquiring a premium user
 -- SELECT marketing_chanel, spend/users_acquisition
 -- FROM(
 --     SELECT marketing_chanel, COUNT(user_id) FILTER ( WHERE subscription_id IS NOT NULL ) users_acquisition
@@ -121,7 +121,7 @@ FROM user_sub
 -- WHERE event_timestamp::date = '2026-02-15'
 -- ORDER BY session_id, event_timestamp ASC;
 
--- -- перевірка повторного часу
+-- -- check for a repeated timestamp
 -- SELECT *
 -- FROM (
 --     SELECT *,COUNT (event_timestamp) OVER (PARTITION BY user_id, event_timestamp) as uniqe_event
@@ -130,7 +130,7 @@ FROM user_sub
 -- WHERE uniqe_event > 1
 -- ORDER BY user_id, event_timestamp
 
--- -- перевірка на повний дублікат
+-- -- check for a full duplicate
 -- SELECT *
 -- FROM (
 --     SELECT *,COUNT (event_timestamp) OVER (PARTITION BY user_id, event_timestamp, screen_name) as uniqe_event
@@ -139,37 +139,37 @@ FROM user_sub
 -- WHERE uniqe_event > 1
 -- ORDER BY user_id, event_timestamp
 
--- -- Перевірка на дублювання логів (кількість сесій перевищує кількість користувачів)
+-- -- Check for duplicated logs (the number of sessions is bigger than the number of users)
 -- SELECT event_timestamp::date, COUNT(DISTINCT(session_id)) as sessions, COUNT(DISTINCT (user_id)) as users
 -- FROM clickstream_logs
 -- GROUP BY event_timestamp::date
 -- -- HAVING COUNT(DISTINCT(session_id)) <>COUNT(DISTINCT (user_id))
 --
--- WITH error_logs AS( -- ПОВТОРЮВАНІ ЛОГИ
+-- WITH error_logs AS( -- REPEATED LOGS
 --     SELECT *
 --     FROM(
 --         SELECT *, screen_name as actual_event, LEAD(screen_name) OVER (PARTITION BY user_id ORDER BY session_id, event_id) as next_event
 --         FROM clickstream_logs)Q
 --     WHERE actual_event = next_event)
 --
--- -- DELETE FROM error_logs -- видалення дублікатів
+-- -- DELETE FROM error_logs -- deleting the duplicates
 -- -- WHERE event_id IN (
 -- --     SELECT event_id
 -- --     FROM error_logs
 -- --     )
 --
--- SELECT COUNT(DISTINCT (session_id)) -- кількість дублікатів
+-- SELECT COUNT(DISTINCT (session_id)) -- number of duplicates
 -- FROM error_logs;
 
 --
---    -- розрахунок дау
+--    -- dau calculation
 -- SELECT AVG(users)
 -- FROM (
 --     SELECT event_timestamp::date, COUNT(DISTINCT(session_id)) as sessions, COUNT(DISTINCT (user_id)) as users
 --     FROM clickstream_logs
 --     GROUP BY event_timestamp::date)Q
 
--- -- загальна кількість складових воронки
+-- -- total count of the funnel parts
 -- SELECT screen_name, COUNT(screen_name)
 -- FROM clickstream_logs
 -- GROUP BY screen_name;

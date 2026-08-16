@@ -117,9 +117,9 @@ class ClickstreamLogs(Base):
     session_id = Column(String(50))
 
 
-Base.metadata.create_all(engine)  # створює таблиці в БД, якщо їх ще немає
+Base.metadata.create_all(engine)  # creates the tables in the DB if they are not there yet
 
-# одноразовий сід даних - закоментовано, щоб не задублювати рядки при повторному запуску файлу
+# one-time data seed - commented out, so the rows are not duplicated on a second run of the file
 # users.rename(columns={'marketing_channel': 'marketing_chanel'}).to_sql(
 #     name='users',
 #     con=engine,

@@ -2,19 +2,19 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-# фіксуємо seed для відтворюваності результатів
+# fix the seed so the results stay reproducible
 np.random.seed(42)
 
 start_date = datetime(2026, 1, 1)
 end_date = datetime(2026, 3, 31)
 days = (end_date - start_date).days
 
-# 1. Довідники
+# 1. Reference tables
 plans = pd.DataFrame({
     'plan_id': [1, 2, 3],
     'plan_name': ['1 Month Pass', '3 Months Pass', 'Full Season Pass'],
     'duration_days': [30, 90, 180],
-    'standard_price': [250, 600, 1000]  # в грн
+    'standard_price': [250, 600, 1000]  # in UAH
 })
 
 subjects = pd.DataFrame({
@@ -35,7 +35,7 @@ tests = pd.DataFrame({
     'test_type': ['Full Mock', 'Full Mock', 'Full Mock']
 })
 
-# 2. Користувачі (генерація 5000 користувачів)
+# 2. Users (generate 5000 users)
 num_users = 5000
 user_ids = list(range(10001, 10001 + num_users))
 
@@ -52,9 +52,9 @@ users = pd.DataFrame({
 })
 users['registration_date'] = pd.to_datetime(users['registration_date']).dt.date
 
-# 3. Маркетингові витрати
-# ВАЖЛИВО: cost нижче - це витрати каналу за ВЕСЬ день, а не за одного користувача чи показ
-# (сам колись переплутав це і отримав космічний CAC в аналізі - див. Ed-tech proj.md)
+# 3. Marketing costs
+# IMPORTANT: cost below is the spend of the channel for the WHOLE day, not for one user or one impression
+# (I mixed this up once myself and got a cosmic CAC in the analysis - see Ed-tech proj.md)
 date_range = pd.date_range(start_date, end_date)
 marketing_costs = []
 for d in date_range:
@@ -64,12 +64,12 @@ for d in date_range:
         marketing_costs.append({'date': d.date(), 'channel': ch, 'cost': round(max(50, cost), 2)})
 marketing_costs = pd.DataFrame(marketing_costs)
 
-# 4. А/Б тест (експеримент з онбордингом: ab_onboarding_v2)
-# підступна пастка симулюється прямо тут через дисбаланс трафіку і парадокс Сімпсона
+# 4. A/B test (onboarding experiment: ab_onboarding_v2)
+# the sneaky trap is simulated right here through the traffic imbalance and Simpson's paradox
 ab_test = []
 for idx, row in users.iterrows():
     if row['registration_date'] >= datetime(2026, 2, 1).date():
-        # штучний перекіс розподілу (Sample Ratio Mismatch + парадокс Сімпсона)
+        # artificial skew of the split (Sample Ratio Mismatch + Simpson's paradox)
         if row['platform'] == 'iOS':
             variant = np.random.choice(['A', 'B'], p=[0.8, 0.2])
         else:
@@ -77,16 +77,16 @@ for idx, row in users.iterrows():
         ab_test.append({'user_id': row['user_id'], 'experiment_name': 'ab_onboarding_v2', 'variant': variant})
 ab_test_segments = pd.DataFrame(ab_test)
 
-# 5. Підписки
+# 5. Subscriptions
 subscriptions = []
 sub_id = 50001
 for idx, row in users.iterrows():
-    # базова конверсія залежить від каналу і платформи
+    # the base conversion depends on the channel and the platform
     cr = 0.05
     if row['marketing_channel'] == 'Organic': cr = 0.02
     if row['platform'] == 'iOS': cr += 0.05
 
-    # вплив А/Б тесту (насправді варіант B кращий на обох платформах, але загальний CR покаже фокус - привіт, парадокс Сімпсона)
+    # effect of the A/B test (in fact variant B is better on both platforms, but the pooled CR will show a trick - hello, Simpson's paradox)
     is_in_ab = row['user_id'] in ab_test_segments['user_id'].values
     if is_in_ab:
         v = ab_test_segments[ab_test_segments['user_id'] == row['user_id']]['variant'].values[0]
@@ -102,7 +102,7 @@ for idx, row in users.iterrows():
         s_date = row['registration_date'] + timedelta(days=days_offset)
         e_date = s_date + timedelta(days=int(plan_info['duration_days']))
 
-        # знижки ретрай-системам / баг в логуванні промокодів
+        # discounts for retry systems / bug in the promo code logging
         actual_price = plan_info['standard_price']
         if np.random.rand() < 0.15: actual_price *= 0.8
 
@@ -118,14 +118,14 @@ for idx, row in users.iterrows():
         sub_id += 1
 subscriptions = pd.DataFrame(subscriptions)
 
-# 6. Уроки і спроби тестів
+# 6. Lessons and test attempts
 user_lessons = []
 test_attempts = []
 attempt_id = 70001
 
 for idx, row in users.iterrows():
     activity_level = np.random.randint(0, 10)
-    # платні юзери активніші
+    # paying users are more active
     if row['user_id'] in subscriptions['user_id'].values:
         activity_level += np.random.randint(5, 15)
 
@@ -150,7 +150,7 @@ for idx, row in users.iterrows():
             'test_id': t_id,
             'started_at': st_time,
             'finished_at': st_time + timedelta(minutes=np.random.randint(60, 120)),
-            'score': np.random.randint(100, 201),  # Шкала ЗНО 100-200
+            'score': np.random.randint(100, 201),  # ZNO scale 100-200
             'max_score': 200
         })
         attempt_id += 1
@@ -158,10 +158,10 @@ for idx, row in users.iterrows():
 user_lessons = pd.DataFrame(user_lessons)
 test_attempts = pd.DataFrame(test_attempts)
 
-# 7. Логи клікстріму (сирі дані)
+# 7. Clickstream logs (raw data)
 clickstream = []
 ev_id = 900001
-for idx, row in users.sample(n=1500).iterrows():  # згенеруємо логи для частини юзерів, щоб не роздувати файл
+for idx, row in users.sample(n=1500).iterrows():  # generate logs for a part of the users, so the file does not blow up
     sess_id = f"sess_{np.random.randint(10000, 99999)}"
     base_time = datetime.combine(row['registration_date'], datetime.min.time()) + timedelta(hours=12)
 
@@ -176,10 +176,10 @@ for idx, row in users.sample(n=1500).iterrows():  # згенеруємо лог�
             'session_id': sess_id
         })
         ev_id += 1
-        # штучний баг дублювання логів (технічний збій клікстріму 15 лютого)
+        # artificial log duplication bug (clickstream technical failure on 15 february)
         if row['registration_date'] == datetime(2026, 2, 15).date() and np.random.rand() < 0.5:
             clickstream.append({
-                'event_id': ev_id,  # той самий чи інкрементний - зробимо інкрементний, але дубль по суті
+                'event_id': ev_id,  # same one or incremented - let's increment it, but it is a duplicate in essence
                 'user_id': row['user_id'],
                 'event_timestamp': base_time + timedelta(minutes=i * 2),
                 'event_type': 'screen_view',
@@ -190,7 +190,7 @@ for idx, row in users.sample(n=1500).iterrows():  # згенеруємо лог�
 
 clickstream_logs = pd.DataFrame(clickstream)
 
-# збереження в CSV (закоментовано, бо файли вже згенеровані і лежать в data/ - щоб не перезаписати випадково)
+# saving to CSV (commented out, because the files are already generated and sit in data/ - so we do not overwrite them by accident)
 # plans.to_csv('subscription_plans.csv', index=False)
 # subjects.to_csv('subjects.csv', index=False)
 # lessons.to_csv('lessons.csv', index=False)
@@ -203,4 +203,4 @@ clickstream_logs = pd.DataFrame(clickstream)
 # test_attempts.to_csv('test_attempts.csv', index=False)
 # clickstream_logs.to_csv('clickstream_logs.csv', index=False)
 
-print("Всі 11 таблиць успішно створено у форматі CSV!")
+print("All 11 tables created successfully in CSV format!")

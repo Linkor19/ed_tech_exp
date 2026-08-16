@@ -57,15 +57,15 @@ clickstream_logs = pd.read_csv('data/clickstream_logs.csv')
 
 users_ab_test = users.merge(ab_test_segments, on = 'user_id')
 
-# перевіримо співвідношення по платформах для різних груп
+# let's check the platform split for the different groups
 sns.countplot(x = 'platform', data = users_ab_test, hue= 'variant')
 plt.show()
 
-##перевіримо співвідношення по залученню для різних груп
+##let's check the acquisition split for the different groups
 sns.countplot(x = 'marketing_channel', data = users_ab_test, hue = 'variant')
 plt.show()
 
-##загальне співвідношення тестованих
+##overall split of the tested users
 users_ab_test_summarized = users_ab_test.value_counts('variant').reset_index()
 print(users_ab_test_summarized)
 users_ab_test_summarized.plot(x = 'variants', y = 'count', kind = 'pie')
@@ -84,7 +84,7 @@ print(f'crb : {crb}')
 
 pa = cra
 pb = crb
-# z-тест на різницю пропорцій (конверсій) між варіантами
+# z-test on the difference of proportions (conversions) between the variants
 ppool = (users_ab_test_subscription_a['subscription_id'].count() + users_ab_test_subscription_b['subscription_id'].count())/ (users_ab_test_subscription_a['user_id'].count() + users_ab_test_subscription_b['user_id'].count())
 SEppool = np.sqrt(ppool*(1-ppool)*(1/users_ab_test_subscription_a['user_id'].count() + 1/users_ab_test_subscription_b['user_id'].count()))
 z = (cra - crb)/SEppool
@@ -93,27 +93,27 @@ if z > 1.96 :
 if z <= 1.96 :
     print(f'bad feature a, z-score = {z}')
 
-# різні сегменти для a
+# different segments for a
 cra_by_cohorts = users_ab_test_subscription_a.groupby(['platform','marketing_channel'])[['user_id','subscription_id']].count().reset_index()
 cra_by_cohorts['cr'] = cra_by_cohorts['subscription_id'] / cra_by_cohorts['user_id']
 print(cra_by_cohorts)
 
-# різні сегменти для b
+# different segments for b
 crb_by_cohorts = users_ab_test_subscription_b.groupby(['platform','marketing_channel'])[['user_id','subscription_id']].count().reset_index()
 crb_by_cohorts['cr'] = crb_by_cohorts['subscription_id'] / crb_by_cohorts['user_id']
 print(crb_by_cohorts)
 
-# різні сегменти для загальної сукупності
+# different segments for the whole population
 cr_by_cohorts  = users_ab_test_subscription.groupby(['platform','marketing_channel'])[['user_id','subscription_id']].count().reset_index()
 cr_by_cohorts['cr'] = cr_by_cohorts['subscription_id'] / cr_by_cohorts['user_id']
 print(cr_by_cohorts)
 
-# cr по каналах
+# cr by channel
 cr_by_marketing_channel = users_ab_test_subscription.groupby('marketing_channel')[['user_id','subscription_id']].count().reset_index()
 cr_by_marketing_channel['cr'] = cr_by_marketing_channel['subscription_id'] / cr_by_marketing_channel['user_id']
 print(cr_by_marketing_channel)
 
-# cr по платформах
+# cr by platform
 cr_by_platform = users_ab_test_subscription.groupby('platform')[['user_id','subscription_id']].count().reset_index()
 cr_by_platform['cr'] = cr_by_platform['subscription_id'] / cr_by_platform['user_id']
 print(cr_by_platform)
@@ -121,7 +121,7 @@ print(cr_by_platform)
 Na = users_ab_test_subscription_a['user_id'].count()
 Nb = users_ab_test_subscription_b['user_id'].count()
 
-## bootstrap на 10000 ітерацій для довірчого інтервалу різниці конверсій
+## bootstrap over 10000 iterations for the confidence interval of the conversion difference
 
 diff_distribution = []
 
