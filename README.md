@@ -4,7 +4,20 @@ A self-contained analytics case study built around a fictional ed-tech (test-pre
 
 Repository: https://github.com/Linkor19/ed_tech_exp
 
-> **Note:** the full write-up (methodology, queries, findings) is written in **Ukrainian**. It lives in `Ed-tech proj.md`, kept alongside this project locally and not part of this repository snapshot (see below).
+## Where to read the analysis
+
+> **Findings report (English)** — [`docs/FINDINGS.md`](docs/FINDINGS.md), in this
+> repository, next to the three figures it uses (`docs/*.png`). On GitHub:
+> https://github.com/Linkor19/ed_tech_exp/blob/master/docs/FINDINGS.md
+>
+> This is the place to start: what the numbers say, which of them can be trusted,
+> and what to fix. All of it was re-run against the database, and the figures are
+> rebuilt from it by `docs/make_charts.py`.
+
+> **Full write-up (Ukrainian)** — `Ed-tech proj.md`, in the project root. It holds
+> the methodology, every query, and the step-by-step reasoning behind the report.
+> It is kept locally only and is **not** part of this repository snapshot (see
+> *Kept locally* below).
 
 ## Project structure
 
@@ -17,6 +30,8 @@ Files tracked in this repository:
 - `ad_hoc_task.sql` - retention, hardest-lesson, and test-duration ad-hoc queries
 - `ab_test_cr.sql` - conversion rate per A/B test variant
 - `measures_and_check.sql` - `user_sub` view, channel-level metrics (ARPU/ARPPU/CAC/ROMI), and clickstream log quality checks
+- `docs/FINDINGS.md` - the findings report in English: what the numbers say, which of them can be trusted, and what to fix
+- `docs/make_charts.py` - rebuilds the three figures used in the report straight from the database
 
 Kept locally, not pushed to this repository:
 
